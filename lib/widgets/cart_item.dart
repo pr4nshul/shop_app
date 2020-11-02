@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/cart.dart';
+
 class CartItem extends StatelessWidget {
   final String id;
   final String title;
   final int quantity;
   final double price;
   final String productId;
-  CartItem({this.title, this.quantity, this.price, this.id,this.productId});
+
+  CartItem({this.title, this.quantity, this.price, this.id, this.productId});
 
   @override
   Widget build(BuildContext context) {
@@ -18,13 +20,40 @@ class CartItem extends StatelessWidget {
         color: Theme.of(context).errorColor,
         child: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Icon(Icons.delete,size: 30,color: Colors.white,),
+          child: Icon(
+            Icons.delete,
+            size: 30,
+            color: Colors.white,
+          ),
         ),
         margin: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       ),
       direction: DismissDirection.endToStart,
-      onDismissed: (direction){
-        Provider.of<Cart>(context,listen: false).delete(productId);
+      confirmDismiss: (direction) {
+        return showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text('Are you sure?'),
+            content: Text('Do you want to remove the item from your cart?'),
+            actions: [
+              FlatButton(
+                child: Text('Yes'),
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+              ),
+              FlatButton(
+                child: Text('No'),
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+      onDismissed: (direction) {
+        Provider.of<Cart>(context, listen: false).delete(productId);
       },
       child: Card(
         margin: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
