@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shop_app/models/http_exception.dart';
 import './product.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class ProductProvider with ChangeNotifier {
   List<Product> _items = [
@@ -49,23 +52,93 @@ class ProductProvider with ChangeNotifier {
     return _items.firstWhere((element) => id == element.id);
   }
 
-  void addItem(Product product) {
-    final newProduct = Product(
-        title: product.title,
-        price: product.price,
-        id: DateTime.now().toString(),
-        description: product.description,
-        imageUrl: product.imageUrl);
-    _items.add(newProduct);
-    notifyListeners();
+  Future<void> setFetchProducts() async {
+    const url = 'https://flutter-demo-bc8c7.firebaseio.com/products.json';
+    try {
+      final response = await http.get(url);
+      final extractedData = json.decode(response.body) as Map<String, dynamic>;
+      if(extractedData==null){
+        return;
+      }
+      List<Product> loadedItems = [];
+      extractedData.forEach((id, data) {
+        loadedItems.add(
+          Product(
+            id: id,
+            imageUrl: data['imageUrl'],
+            description: data['description'],
+            price: data['price'],
+            title: data['title'],
+            isFav: data['isFavourite'],
+          ),
+        );
+      });
+      _items = loadedItems;
+      notifyListeners();
+    } catch (error) {
+      print(error);
+      throw (error);
+    }
   }
-  void updateItem(String id,Product product){
+
+  Future<void> addItem(Product product) async {
+    const url = 'https://flutter-demo-bc8c7.firebaseio.com/products.json';
+    try {
+      final response = await http.post(url,
+          body: json.encode({
+            'price': product.price,
+            'title': product.title,
+            'description': product.description,
+            'imageUrl': product.imageUrl,
+            'isFavourite': product.isFav,
+          }));
+      final newProduct = Product(
+          title: product.title,
+          price: product.price,
+          id: json.decode(response.body)['name'],
+          description: product.description,
+          imageUrl: product.imageUrl);
+      _items.add(newProduct);
+      notifyListeners();
+    } catch (error) {
+      print(error);
+      throw (error);
+    }
+  }
+
+  Future<void> updateItem(String id, Product product) async{
     final index = _items.indexWhere((element) => element.id == id);
-    _items[index] = product;
+    if (index >= 0) {
+      final url =
+          'https://flutter-demo-bc8c7.firebaseio.com/products/$id.json';
+      await http.patch(
+        url,
+        body: json.encode(
+          {
+            'title': product.title,
+            'description': product.description,
+            'imageUrl': product.imageUrl,
+            'price': product.price,
+          },
+        ),
+      );
+      _items[index] = product;
+    }
     notifyListeners();
   }
-  void delete(String id){
-    _items.removeWhere((element) => element.id ==id);
+
+  Future<void> delete(String id) async{
+    final url = 'https://flutter-demo-bc8c7.firebaseio.com/products/$id.json';
+    final index = _items.indexWhere((element) => element.id==id);
+    var product = _items[index];
+    _items.removeWhere((element) => element.id == id);
     notifyListeners();
+    final response = await http.delete(url);
+    if(response.statusCode>=400){
+      _items.insert(index, product);
+      notifyListeners();
+      throw HttpException("Error");
+    }
+    product = null;
   }
 }

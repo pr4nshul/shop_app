@@ -7,6 +7,7 @@ import '../providers/cart.dart';
 class ProductItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final errorScaffold = Scaffold.of(context);
     final product = Provider.of<Product>(context);
     final cart = Provider.of<Cart>(context, listen: false);
     return GestureDetector(
@@ -19,8 +20,19 @@ class ProductItem extends StatelessWidget {
         footer: GridTileBar(
           leading: IconButton(
             icon: Icon(product.isFav ? Icons.favorite : Icons.favorite_border),
-            onPressed: () {
-              product.toggleFav();
+            onPressed: () async {
+              try {
+                await product.toggleFav();
+              } catch (error) {
+                errorScaffold.showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Can\'t do that right now!',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                );
+              }
             },
             color: Theme.of(context).accentColor,
           ),

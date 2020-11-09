@@ -8,10 +8,11 @@ class UserItem extends StatelessWidget {
   final String title;
   final String imageURL;
 
-  UserItem({@required this.id,this.title, this.imageURL});
+  UserItem({@required this.id, this.title, this.imageURL});
 
   @override
   Widget build(BuildContext context) {
+    final errorScaffold = Scaffold.of(context);
     return ListTile(
       leading: CircleAvatar(
         backgroundImage: NetworkImage(imageURL),
@@ -21,12 +22,33 @@ class UserItem extends StatelessWidget {
         width: 100,
         child: Row(
           children: [
-            IconButton(icon: Icon(Icons.edit,color: Theme.of(context).primaryColor,), onPressed: () {
-              Navigator.of(context).pushNamed(EditProductScreen.routeName,arguments: id);
-            }),
-            IconButton(icon: Icon(Icons.delete), onPressed: () {
-              Provider.of<ProductProvider>(context,listen: false).delete(id);
-            }),
+            IconButton(
+                icon: Icon(
+                  Icons.edit,
+                  color: Theme.of(context).primaryColor,
+                ),
+                onPressed: () {
+                  Navigator.of(context)
+                      .pushNamed(EditProductScreen.routeName, arguments: id);
+                }),
+            IconButton(
+                icon: Icon(Icons.delete),
+                onPressed: () async {
+                  try {
+                    await Provider.of<ProductProvider>(context, listen: false)
+                        .delete(id);
+                  } catch (error) {
+                    errorScaffold.hideCurrentSnackBar();
+                    errorScaffold.showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Deleting Failed',
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    );
+                  }
+                }),
           ],
         ),
       ),
