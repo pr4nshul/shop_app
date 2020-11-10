@@ -53,7 +53,7 @@ class ProductProvider with ChangeNotifier {
   }
 
   Future<void> setFetchProducts() async {
-    const url = 'https://flutter-demo-bc8c7.firebaseio.com/products.json';
+    const url = 'https://flutter-demo-fb276.firebaseio.com/products.json';
     try {
       final response = await http.get(url);
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
@@ -82,7 +82,7 @@ class ProductProvider with ChangeNotifier {
   }
 
   Future<void> addItem(Product product) async {
-    const url = 'https://flutter-demo-bc8c7.firebaseio.com/products.json';
+    const url = 'https://flutter-demo-fb276.firebaseio.com/products.json';
     try {
       final response = await http.post(url,
           body: json.encode({
@@ -110,7 +110,7 @@ class ProductProvider with ChangeNotifier {
     final index = _items.indexWhere((element) => element.id == id);
     if (index >= 0) {
       final url =
-          'https://flutter-demo-bc8c7.firebaseio.com/products/$id.json';
+          'https://flutter-demo-fb276.firebaseio.com/products/$id.json';
       await http.patch(
         url,
         body: json.encode(
@@ -128,7 +128,7 @@ class ProductProvider with ChangeNotifier {
   }
 
   Future<void> delete(String id) async{
-    final url = 'https://flutter-demo-bc8c7.firebaseio.com/products/$id.json';
+    final url = 'https://flutter-demo-fb276.firebaseio.com/products/$id.json';
     final index = _items.indexWhere((element) => element.id==id);
     var product = _items[index];
     _items.removeWhere((element) => element.id == id);

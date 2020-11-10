@@ -21,7 +21,7 @@ class Product with ChangeNotifier {
       @required this.imageUrl});
 
   Future<void> toggleFav() async {
-    final url = 'https://flutter-demo-bc8c7.firebaseio.com/products/$id.json';
+    final url = 'https://flutter-demo-fb276.firebaseio.com/products/$id.json';
     isFav = !isFav;
     notifyListeners();
     final response =await http.patch(

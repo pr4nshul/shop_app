@@ -21,7 +21,7 @@ class Orders with ChangeNotifier {
   }
 
   Future<void> fetchSetOrders() async {
-    const url = 'https://flutter-demo-bc8c7.firebaseio.com/orders.json';
+    const url = 'https://flutter-demo-fb276.firebaseio.com/orders.json';
     final response = await http.get(url);
     print(json.decode(response.body));
     final extractedData =
@@ -56,7 +56,7 @@ class Orders with ChangeNotifier {
   }
 
   Future<void> addOrder(List<CartItem> products, double total) async {
-    const url = 'https://flutter-demo-bc8c7.firebaseio.com/orders.json';
+    const url = 'https://flutter-demo-fb276.firebaseio.com/orders.json';
     final timestamp = DateTime.now();
     final response = await http.post(
       url,
