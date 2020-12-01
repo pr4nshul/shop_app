@@ -15,15 +15,16 @@ class OrderItem {
 
 class Orders with ChangeNotifier {
   List<OrderItem> _orders = [];
-
+  String _token;
+  final String _userId;
   List<OrderItem> get orders {
     return [..._orders];
   }
-
+  Orders(this._token,this._orders,this._userId);
   Future<void> fetchSetOrders() async {
-    const url = 'https://flutter-demo-fb276.firebaseio.com/orders.json';
+    final url = 'https://flutter-demo-fb276.firebaseio.com/orders/$_userId.json?auth=$_token';
     final response = await http.get(url);
-    print(json.decode(response.body));
+    //print(json.decode(response.body));
     final extractedData =
         json.decode(response.body) as Map<String, dynamic>;
     if(extractedData==null){
@@ -56,7 +57,7 @@ class Orders with ChangeNotifier {
   }
 
   Future<void> addOrder(List<CartItem> products, double total) async {
-    const url = 'https://flutter-demo-fb276.firebaseio.com/orders.json';
+    final url = 'https://flutter-demo-fb276.firebaseio.com/orders/$_userId.json?auth=$_token';
     final timestamp = DateTime.now();
     final response = await http.post(
       url,

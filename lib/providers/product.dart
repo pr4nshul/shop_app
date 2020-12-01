@@ -20,16 +20,14 @@ class Product with ChangeNotifier {
       @required this.price,
       @required this.imageUrl});
 
-  Future<void> toggleFav() async {
-    final url = 'https://flutter-demo-fb276.firebaseio.com/products/$id.json';
+  Future<void> toggleFav(String token,String userId) async {
+    final url = 'https://flutter-demo-fb276.firebaseio.com/userFavouriteProducts/$userId/$id.json?auth=$token';
     isFav = !isFav;
     notifyListeners();
-    final response =await http.patch(
+    final response =await http.put(
         url,
         body: json.encode(
-          {
-            'isFavourite': isFav,
-          },
+          isFav
         ),
       );
     if(response.statusCode>=400){

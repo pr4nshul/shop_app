@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shop_app/providers/auth.dart';
 import 'package:shop_app/providers/product.dart';
 import '../screens/product_details_screen.dart';
 import '../providers/cart.dart';
@@ -10,6 +11,7 @@ class ProductItem extends StatelessWidget {
     final errorScaffold = Scaffold.of(context);
     final product = Provider.of<Product>(context);
     final cart = Provider.of<Cart>(context, listen: false);
+    final auth = Provider.of<Auth>(context,listen: false);
     return GestureDetector(
       onTap: () {
         Navigator.of(context)
@@ -22,7 +24,7 @@ class ProductItem extends StatelessWidget {
             icon: Icon(product.isFav ? Icons.favorite : Icons.favorite_border),
             onPressed: () async {
               try {
-                await product.toggleFav();
+                await product.toggleFav(auth.token,auth.userId);
               } catch (error) {
                 errorScaffold.showSnackBar(
                   SnackBar(

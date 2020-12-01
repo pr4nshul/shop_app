@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ProductProvider with ChangeNotifier {
+  String _token;
+  String _userId;
   List<Product> _items = [
     Product(
       id: 'p1',
@@ -12,7 +14,7 @@ class ProductProvider with ChangeNotifier {
       description: 'A red shirt - it is pretty red!',
       price: 29.99,
       imageUrl:
-          'https://cdn.pixabay.com/photo/2016/10/02/22/17/red-t-shirt-1710578_1280.jpg',
+      'https://cdn.pixabay.com/photo/2016/10/02/22/17/red-t-shirt-1710578_1280.jpg',
     ),
     Product(
       id: 'p2',
@@ -20,7 +22,7 @@ class ProductProvider with ChangeNotifier {
       description: 'A nice pair of trousers.',
       price: 59.99,
       imageUrl:
-          'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Trousers%2C_dress_%28AM_1960.022-8%29.jpg/512px-Trousers%2C_dress_%28AM_1960.022-8%29.jpg',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Trousers%2C_dress_%28AM_1960.022-8%29.jpg/512px-Trousers%2C_dress_%28AM_1960.022-8%29.jpg',
     ),
     Product(
       id: 'p3',
@@ -28,7 +30,7 @@ class ProductProvider with ChangeNotifier {
       description: 'Warm and cozy - exactly what you need for the winter.',
       price: 19.99,
       imageUrl:
-          'https://live.staticflickr.com/4043/4438260868_cc79b3369d_z.jpg',
+      'https://live.staticflickr.com/4043/4438260868_cc79b3369d_z.jpg',
     ),
     Product(
       id: 'p4',
@@ -36,9 +38,11 @@ class ProductProvider with ChangeNotifier {
       description: 'Prepare any meal you want.',
       price: 49.99,
       imageUrl:
-          'https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Cast-Iron-Pan.jpg/1024px-Cast-Iron-Pan.jpg',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Cast-Iron-Pan.jpg/1024px-Cast-Iron-Pan.jpg',
     ),
   ];
+
+  ProductProvider(this._token, this._userId, this._items);
 
   List<Product> get items {
     return [..._items];
@@ -52,14 +56,19 @@ class ProductProvider with ChangeNotifier {
     return _items.firstWhere((element) => id == element.id);
   }
 
-  Future<void> setFetchProducts() async {
-    const url = 'https://flutter-demo-fb276.firebaseio.com/products.json';
+  Future<void> setFetchProducts([bool filterUser= false]) async {
+    final showByUser = filterUser ? '&orderBy="creatorId"&equalTo="$_userId"': '';
+    var url =
+        'https://flutter-demo-fb276.firebaseio.com/products.json?auth=$_token$showByUser';
     try {
       final response = await http.get(url);
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
-      if(extractedData==null){
+      if (extractedData == null) {
         return;
       }
+      url = 'https://flutter-demo-fb276.firebaseio.com/userFavouriteProducts/$_userId.json?auth=$_token';
+      final favResponse = await http.get(url);
+      final favData = json.decode(favResponse.body);
       List<Product> loadedItems = [];
       extractedData.forEach((id, data) {
         loadedItems.add(
@@ -69,7 +78,7 @@ class ProductProvider with ChangeNotifier {
             description: data['description'],
             price: data['price'],
             title: data['title'],
-            isFav: data['isFavourite'],
+            isFav: favData== null ? false : favData[id] ?? false,
           ),
         );
       });
@@ -82,7 +91,8 @@ class ProductProvider with ChangeNotifier {
   }
 
   Future<void> addItem(Product product) async {
-    const url = 'https://flutter-demo-fb276.firebaseio.com/products.json';
+    final url =
+        'https://flutter-demo-fb276.firebaseio.com/products.json?auth=$_token';
     try {
       final response = await http.post(url,
           body: json.encode({
@@ -90,7 +100,7 @@ class ProductProvider with ChangeNotifier {
             'title': product.title,
             'description': product.description,
             'imageUrl': product.imageUrl,
-            'isFavourite': product.isFav,
+            'creatorId': _userId,
           }));
       final newProduct = Product(
           title: product.title,
@@ -106,11 +116,11 @@ class ProductProvider with ChangeNotifier {
     }
   }
 
-  Future<void> updateItem(String id, Product product) async{
+  Future<void> updateItem(String id, Product product) async {
     final index = _items.indexWhere((element) => element.id == id);
     if (index >= 0) {
       final url =
-          'https://flutter-demo-fb276.firebaseio.com/products/$id.json';
+          'https://flutter-demo-fb276.firebaseio.com/products/$id.json?auth=$_token';
       await http.patch(
         url,
         body: json.encode(
@@ -127,14 +137,15 @@ class ProductProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> delete(String id) async{
-    final url = 'https://flutter-demo-fb276.firebaseio.com/products/$id.json';
-    final index = _items.indexWhere((element) => element.id==id);
+  Future<void> delete(String id) async {
+    final url =
+        'https://flutter-demo-fb276.firebaseio.com/products/$id.json?auth=$_token';
+    final index = _items.indexWhere((element) => element.id == id);
     var product = _items[index];
     _items.removeWhere((element) => element.id == id);
     notifyListeners();
     final response = await http.delete(url);
-    if(response.statusCode>=400){
+    if (response.statusCode >= 400) {
       _items.insert(index, product);
       notifyListeners();
       throw HttpException("Error");
